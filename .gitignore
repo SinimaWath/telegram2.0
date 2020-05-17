@@ -6,13 +6,8 @@
 /test
 
 # production
-/build
-
-# headline
-/src/templates/headline/headline.html
-
-# pages
-/public
+/public/build
+/out
 
 # misc
 .DS_Store
