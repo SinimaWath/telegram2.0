@@ -15,12 +15,14 @@ function createSettings() {
 
 export const settings = createSettings();
 
+export const apiError = writable('');
+
 const isValidCom = (value) => value && !!value.match(/COM[0-9][0-9]?/);
 const isValidSpeed = (value) => !Number.isNaN(parseFloat(value)) && value > 0;
 
 export const error = derived(
-  settings,
-  $settings => {
+  [settings, apiError],
+  ([$settings, $apiError]) => {
       if (!isValidCom($settings.comport)) {
         return {
           field: 'comport',
@@ -32,6 +34,13 @@ export const error = derived(
         return {
           field: 'speed',
           error: 'Invalid speed'
+        }
+      }
+
+      if ($apiError) {
+        return {
+          field: 'none',
+          error: $apiError
         }
       }
 

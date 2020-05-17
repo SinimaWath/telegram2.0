@@ -1,6 +1,6 @@
 <script>
     import {Input, Field, Button} from 'svelma'
-    import {settings, error} from '../../modules/settings/store';
+    import {settings, apiError, error} from '../../modules/settings/store';
     import {text, type} from './Settings.helpers';
     import {getContext} from 'svelte';
     import {ContextKeys} from '../../modules/context';
@@ -15,7 +15,7 @@
         const {error} = await api.connect($settings);
 
         if (error) {
-            console.error(error);
+            apiError.set(error);
             return;
         }
 
@@ -26,12 +26,14 @@
     let speedType;
     let comportType;
     let comportText;
+    let apiErrorText;
 
     $: {
         speedText = text('speed')($error);
         speedType = type('speed')($error);
         comportType = type('comport')($error);
         comportText = text('comport')($error);
+        apiErrorText = text('none')($error);
     }
 
 </script>
@@ -39,6 +41,9 @@
 
 <Page title="Settings">
     <h1>Settings</h1>
+    {#if apiErrorText }
+        <p class="help is-danger">{apiErrorText}</p>
+    {/if}
     <form action="#" on:submit={onSubmit} class="form">
         <Field label="COM-port" type={comportType} message={comportText}>
             <Input
@@ -58,7 +63,7 @@
             />
         </Field>
 
-        <Button type="is-primary" nativeType="submit" disabled={!!$error}>Submit</Button>
+        <Button type="is-primary" nativeType="submit" disabled={!!$error && !apiErrorText}>Submit</Button>
     </form>
 </Page>
 
