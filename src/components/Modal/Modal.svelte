@@ -2,20 +2,13 @@
     import { modal, modalResponse } from '../../modules/modal/store';
     import { Notification, Dialog } from 'svelma'
 
-    $: {
-        console.log($modal);
-        if ($modal.type === 'alert') {
-            openAlert($modal.text)
-        }
+    const types = {
+        alert: openAlert,
+        success: openSuccess,
+        prompt: openPrompt
+    };
 
-        if ($modal.type === 'success') {
-            openSuccess($modal.text)
-        }
-
-        if ($modal.type === 'prompt') {
-            openPrompt($modal.text)
-        }
-    }
+    $: types[$modal.type] && types[$modal.type]($modal.text);
 
     function openAlert(text) {
         Notification.create({ message: text, type: 'is-danger', position: 'is-top', duration: 5000 })
@@ -28,9 +21,6 @@
     function openPrompt(text) {
         Dialog.prompt({
             message: text,
-        }).then(prompt => {
-          // console.log()
-          modalResponse.set(prompt)
-        })
+        }).then(prompt => modalResponse.set(prompt))
     }
 </script>

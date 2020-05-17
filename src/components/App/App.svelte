@@ -7,6 +7,7 @@
 
     import {onMount} from 'svelte';
     import {router} from '../../modules/router/store';
+    import Modal from '../Modal/Modal.svelte';
 
     export let context = {};
     export let defaultRoute = 'welcome';
@@ -19,6 +20,7 @@
 </script>
 
 <ContextProvider context={context}>
+    <Modal />
     <Route name="welcome">
         <Welcome/>
     </Route>

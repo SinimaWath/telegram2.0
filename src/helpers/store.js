@@ -5,7 +5,9 @@ export const waitForNotNull = (store) => {
     unsub = store.subscribe((value) => {
       if (value) {
         resolve(value);
+        store.set(null);
       }
     });
   }).finally(unsub);
 };
+

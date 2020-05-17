@@ -48,11 +48,16 @@ export class ApiServiceElectron {
     });
   }
 
-  async listen(event, clb) {
-    this.ipc.on(event, (event, args) => {
-      console.log(event);
+  listen(event, clb) {
+    const handle = (_, args) => {
       clb(args);
-    })
+    };
+
+    this.ipc.on(event, handle);
+
+    return () => {
+      this.ipc.removeListener(event, handle);
+    }
   }
 
   async save(params) {

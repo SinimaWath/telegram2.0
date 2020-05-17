@@ -5,7 +5,6 @@
     import {modal, modalResponse} from '../../modules/modal/store';
     import {getContext, onMount} from 'svelte';
     import {ContextKeys} from '../../modules/context';
-    import Modal from '../Modal/Modal.svelte';
     import {waitForNotNull} from '../../helpers/store';
 
     const api = getContext(ContextKeys.API);
@@ -14,7 +13,7 @@
         router.nav('settings');
     }
 
-    onMount(() => {
+    onMount(() =>
         api.listen('file-get', async ({name}) => {
             modal.prompt(`Someone send you file ${name}. Write path where to save it`);
 
@@ -29,7 +28,7 @@
 
             modal.success('File was saved to ' + value);
         })
-    });
+    );
 
     async function onChange(e) {
         if (!e || !e.target || !e.target.files || !e.target.files[0]) {
@@ -46,11 +45,11 @@
 
         modal.success('File was sent');
     }
+
 </script>
 
 <Page title="chat">
     <h1>Send file</h1>
-    <Modal />
     <div class="main">
         <div class="file is-boxed">
             <label class="file-label">
