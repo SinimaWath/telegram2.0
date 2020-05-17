@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, ipcRenderer } = require('electron');
 const path = require('path');
 
 // Live Reload
@@ -13,9 +13,11 @@ if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
+let window = null;
+
 const createWindow = () => {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  window = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
@@ -23,7 +25,7 @@ const createWindow = () => {
     }
   });
 
-  mainWindow.loadFile(path.join(__dirname, '../public/index.html'));
+  window.loadFile(path.join(__dirname, '../public/index.html'));
 };
 
 app.on('ready', createWindow);
@@ -44,5 +46,27 @@ ipcMain.on('connect', (event) => {
   // Тут код соединения с портом
   event.reply('connect-ok');
 });
+
+ipcMain.on('send', (event, {file}) => {
+  console.log(file);
+  // Тут код соединения с портом
+  event.reply('send-ok');
+
+  // дебаг
+  setTimeout(() => {
+    // Сообщение что тебе пришел файл
+    window.webContents.send('file-get', { name: file.name });
+
+    // Пытаемся сохранить файл
+    ipcMain.on('save', (event, params) => {
+      console.log(params, file.name);
+
+      // Сохранили
+      setTimeout(() => event.reply('save-ok'), 1000);
+    })
+  }, 2000);
+
+});
+
 
 
