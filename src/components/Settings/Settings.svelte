@@ -22,19 +22,11 @@
         router.nav('chat');
     }
 
-    let speedText;
-    let speedType;
-    let comportType;
-    let comportText;
-    let apiErrorText;
-
-    $: {
-        speedText = text('speed')($error);
-        speedType = type('speed')($error);
-        comportType = type('comport')($error);
-        comportText = text('comport')($error);
-        apiErrorText = text('none')($error);
-    }
+    $: speedText = text('speed')($error);
+    $: speedType = type('speed')($error);
+    $: comportType = type('comport')($error);
+    $: comportText = text('comport')($error);
+    $: apiErrorText = text('none')($error);
 
 </script>
 

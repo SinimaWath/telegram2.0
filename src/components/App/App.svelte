@@ -9,17 +9,14 @@
     import {router} from '../../modules/router/store';
     import Modal from '../Modal/Modal.svelte';
 
-    export let context = {};
     export let defaultRoute = 'welcome';
 
     onMount(() => {
         router.nav(defaultRoute);
     });
-
-    let isHasSettings = false;
 </script>
 
-<ContextProvider context={context}>
+<ContextProvider {...$$props} >
     <Modal />
     <Route name="welcome">
         <Welcome/>
