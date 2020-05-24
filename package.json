@@ -44,10 +44,13 @@
   },
   "dependencies": {
     "bulma": "^0.8.2",
+    "delay": "^4.3.0",
     "electron-reload": "^1.5.0",
     "electron-squirrel-startup": "^1.0.0",
+    "promise-timeout": "^1.3.0",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-node-resolve": "^5.2.0",
+    "serialport": "^9.0.0",
     "sirv-cli": "^0.4.4",
     "svelma": "^0.3.2"
   },
