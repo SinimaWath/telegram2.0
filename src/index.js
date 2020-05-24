@@ -1,5 +1,7 @@
 const { app, BrowserWindow, ipcMain, ipcRenderer } = require('electron');
-const path = require('path');
+import {AppConnection} from "./network/app";
+import path from "path";
+import fs from "fs";
 
 // Live Reload
 require('electron-reload')(__dirname, {
@@ -42,30 +44,43 @@ app.on('activate', () => {
   }
 });
 
+const conn = new AppConnection();
+
+// подключение
 ipcMain.on('connect', (event) => {
-  // Тут код соединения с портом
-  event.reply('connect-ok');
+  const path = 'TODO';
+  conn.accept(path).then(() => {
+    return conn.connect();
+  }).then(() => {
+    event.reply('connect-ok');
+    subscribeRecvFile();
+  }).catch(() => {
+    event.reply('connect-error');
+  });
 });
 
+// прием
+function subscribeRecvFile() {
+  conn.recvFile().then((filename, buf) => {
+    window.webContents.send('file-get', { name: filename });
+
+    fs.writeFile(filename, buf, (err) => {
+      window.webContents.send('save-ok');
+    })
+  });
+}
+
+// отправка
 ipcMain.on('send', (event, {file}) => {
   console.log(file);
-  // Тут код соединения с портом
-  event.reply('send-ok');
 
-  // дебаг
-  setTimeout(() => {
-    // Сообщение что тебе пришел файл
-    window.webContents.send('file-get', { name: file.name });
-
-    // Пытаемся сохранить файл
-    ipcMain.on('save', (event, params) => {
-      console.log(params, file.name);
-
-      // Сохранили
-      setTimeout(() => event.reply('save-ok'), 1000);
-    })
-  }, 2000);
-
+  file.arrayBuffer().then((buf) => {
+    return conn.sendFile(file.name, buf);
+  }).then(() => {
+    event.reply('send-ok');
+  }).catch(() => {
+    event.reply('send-error');
+  });
 });
 
 
