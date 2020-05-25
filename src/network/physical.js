@@ -1,7 +1,7 @@
-import SerialPort from "serialport";
-import {promisify} from "util";
-import delay from "delay";
-import {timeout} from "promise-timeout";
+const SerialPort = require("serialport");
+const {promisify} = require("util");
+const delay = require("delay");
+const {timeout} = require("promise-timeout");
 
 const TIMEOUT = 1000;
 const FLAG_DELAY = 100;
@@ -22,12 +22,13 @@ async function waitPortFlags(port, {dsr = false, dcd = false, cts = false} = {})
   return true;
 }
 
-export class PhysicalConnection {
+class PhysicalConnection {
   constructor() {
     this._port = null;
   }
 
   async connect(path, {tout = TIMEOUT} = {}) {
+    console.log('physical connect', path);
     return timeout(this._connect(path), tout);
   }
 
@@ -43,12 +44,16 @@ export class PhysicalConnection {
       rtscts: false,
       stopBits: 1,
     };
+    console.log(path);
     this._port = new SerialPort(path, portOpts);
     const portOpen = promisify(this._port.open.bind(this._port));
     const portSet = promisify(this._port.set.bind(this._port));
 
     await portOpen();
-    await portSet({dtr: true});
+    console.log('before prot set');
+    await portSet();
+    console.log('after prot set');
+    // this._port.set({dtr: true}, console.log);
     await waitPortFlags(this._port, {dsr: true, dcd: true});
   }
 
@@ -108,3 +113,8 @@ export class PhysicalConnection {
     return this._port.read();
   }
 }
+
+
+module.exports = {
+  PhysicalConnection
+};

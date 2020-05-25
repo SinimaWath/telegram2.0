@@ -17,10 +17,16 @@ export class ApiServiceElectron {
 
   async connect(settings) {
     return new Promise((resolve) => {
-      this.ipc.on('connect-ok', resolve);
+      this.ipc.on('connect-ok', () => {
+        console.log('connect-ok');
+        resolve();
+      });
       this.ipc.on('connect-error', (event, error) => {
+        console.log('connect-error');
         resolve({error});
       });
+
+      console.log('connect');
 
       this.ipc.send('connect', {
         settings

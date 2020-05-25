@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain, ipcRenderer } = require('electron');
-import {AppConnection} from "./network/app";
-import path from "path";
-import fs from "fs";
+const {AppConnection} = require("./network/app");
+const path = require('path');
+const fs = require('fs');
 
 // Live Reload
 require('electron-reload')(__dirname, {
@@ -47,15 +47,16 @@ app.on('activate', () => {
 const conn = new AppConnection();
 
 // подключение
-ipcMain.on('connect', (event) => {
-  const path = 'TODO';
-  conn.accept(path).then(() => {
+ipcMain.on('connect', (event, {settings}) => {
+  console.log(settings);
+  conn.accept(settings.comport).then(() => {
     return conn.connect();
   }).then(() => {
+    console.log('connect-ok');
     event.reply('connect-ok');
     subscribeRecvFile();
-  }).catch(() => {
-    event.reply('connect-error');
+  }).catch((e) => {
+    event.reply('connect-error', e);
   });
 });
 
@@ -70,16 +71,40 @@ function subscribeRecvFile() {
   });
 }
 
+function toArrayBuffer(buf) {
+  const ab = new ArrayBuffer(buf.length);
+  const view = new Uint8Array(ab);
+  for (let i = 0; i < buf.length; ++i) {
+    view[i] = buf[i];
+  }
+  return ab;
+}
+
 // отправка
 ipcMain.on('send', (event, {file}) => {
-  console.log(file);
 
-  file.arrayBuffer().then((buf) => {
-    return conn.sendFile(file.name, buf);
-  }).then(() => {
-    event.reply('send-ok');
-  }).catch(() => {
-    event.reply('send-error');
+  fs.readFile(file.path, (err, data) => {
+    if (err) {
+      event.reply('send-error');
+      console.log(err);
+      return;
+    }
+
+    try {
+      const buf = toArrayBuffer(data);
+      console.log('before send');
+      conn.sendFile(file.name, buf)
+        .then(() => {
+          console.log('send ok');
+          event.reply('send-ok');
+        }).catch(() => {
+          event.reply('send-error');
+        });
+
+    } catch (e) {
+      console.log(err);
+      event.reply('send-error');
+    }
   });
 });
 

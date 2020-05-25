@@ -1,6 +1,6 @@
-import {PhysicalConnection} from "./physical";
-import {checksumCRC} from "./crc";
-import {TimeoutError} from "promise-timeout";
+const {PhysicalConnection} = require("./physical");
+// con {checksumCRC} from "./crc";
+const {TimeoutError} = require("promise-timeout");
 
 // consts ==============================================================================================================
 
@@ -120,7 +120,7 @@ function packetParse(packetBuf) {
 
 // conn ================================================================================================================
 
-export class DataConnection {
+class DataConnection {
   constructor() {
     this._phys = null;
     this._state = STATE_NONE;
@@ -129,6 +129,7 @@ export class DataConnection {
   }
 
   async accept(path) {
+    console.log('data accept');
     if (this._state !== STATE_NONE)
       return;
 
@@ -146,6 +147,7 @@ export class DataConnection {
     if (this._state !== STATE_ACCEPTING)
       return;
 
+    console.log('data: connect');
     this._state = STATE_CONNECTING;
     await this._write(TYPE_CONNECT, null);
 
@@ -182,8 +184,11 @@ export class DataConnection {
   }
 
   async write(buf) {
+    console.log(this._state);
     if (this._state !== STATE_CONNECTED)
       return;
+
+    console.log('write');
 
     await this._write(TYPE_DATA, buf);
     this._txDataQueue.push(buf);
@@ -315,5 +320,9 @@ export class DataConnection {
     }
   }
 }
+
+module.exports = {
+  DataConnection
+};
 
 // conn ^===============================================================================================================

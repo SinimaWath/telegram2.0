@@ -13,13 +13,13 @@
         e.preventDefault();
 
         const {error} = await api.connect($settings);
-
+        console.log('onSumbit', error);
         if (error) {
             apiError.set(error);
             return;
         }
 
-        router.nav('chat');
+        // router.nav('chat');
     }
 
     $: speedText = text('speed')($error);

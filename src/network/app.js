@@ -1,4 +1,4 @@
-import {DataConnection} from "./data";
+const {DataConnection} = require("./data");
 
 const PACKET_SIZE_TYPE     = 8;
 const PACKET_SIZE_FILENAME = 128;
@@ -62,12 +62,13 @@ function packetParseFile(packetBuf) {
   return {filename, filedata};
 }
 
-export class AppConnection {
+class AppConnection {
   constructor() {
     this._data = null;
   }
 
   async accept(path) {
+    console.log('accept', path, this._data);
     if (this._data)
       return;
 
@@ -99,6 +100,7 @@ export class AppConnection {
   }
 
   async sendFile(filename, filedata) {
+    console.log('send', this._data, this._data.isConnected());
     if (!this._data || !this._data.isConnected())
       return;
 
@@ -112,3 +114,8 @@ export class AppConnection {
     return packetParseFile(await this._data.read());
   }
 }
+
+
+module.exports = {
+  AppConnection
+};

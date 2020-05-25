@@ -23,12 +23,12 @@ const isValidSpeed = (value) => !Number.isNaN(parseFloat(value)) && value > 0;
 export const error = derived(
   [settings, apiError],
   ([$settings, $apiError]) => {
-      if (!isValidCom($settings.comport)) {
-        return {
-          field: 'comport',
-          error: 'Invalid comport format. True format is COM[0-9][0-9]?'
-        }
-      }
+      // if (!isValidCom($settings.comport)) {
+      //   return {
+      //     field: 'comport',
+      //     error: 'Invalid comport format. True format is COM[0-9][0-9]?'
+      //   }
+      // }
 
       if (!isValidSpeed($settings.speed)) {
         return {
