@@ -58,7 +58,6 @@ class PhysicalConnection {
       rtscts: false,
       stopBits: 1,
     };
-    console.log(path);
     this._port = new SerialPort(path, portOpts);
     const portOpen = promisify(this._port.open.bind(this._port));
     const portSet = promisify(this._port.set.bind(this._port));
@@ -130,7 +129,6 @@ class PhysicalConnection {
   }
 
   async _read() {
-    console.log(this._port);
     if (!this._port)
       return;
     const portSet = promisify(this._port.set.bind(this._port));

@@ -76,7 +76,6 @@ function packetMake(type, buf) {
   const bufLen = (buf) ? buf.byteLength : 0;
   const packetLen = HEADER_SIZE + bufLen;
   const packetBuf = new ArrayBuffer(packetLen);
-  console.log(packetBuf);
   const packetBufView = new DataView(packetBuf);
   const packetBufUint8View = new Uint8Array(packetBuf);
 
@@ -92,7 +91,6 @@ function packetMake(type, buf) {
 }
 
 function packetParse(packetBuf) {
-  console.log(packetBuf);
   const packetBufView = new DataView(packetBuf);
 
   if (!(packetBuf.byteLength >= HEADER_SIZE))
