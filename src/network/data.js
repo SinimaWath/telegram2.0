@@ -1,5 +1,5 @@
 const {PhysicalConnection} = require("./physical");
-// con {checksumCRC} from "./crc";
+const {checksumCRC} = require("./crc");
 const {TimeoutError} = require("promise-timeout");
 
 // consts ==============================================================================================================
@@ -76,6 +76,7 @@ function packetMake(type, buf) {
   const bufLen = (buf) ? buf.byteLength : 0;
   const packetLen = HEADER_SIZE + bufLen;
   const packetBuf = new ArrayBuffer(packetLen);
+  console.log(packetBuf);
   const packetBufView = new DataView(packetBuf);
   const packetBufUint8View = new Uint8Array(packetBuf);
 
@@ -91,6 +92,7 @@ function packetMake(type, buf) {
 }
 
 function packetParse(packetBuf) {
+  console.log(packetBuf);
   const packetBufView = new DataView(packetBuf);
 
   if (!(packetBuf.byteLength >= HEADER_SIZE))
@@ -149,10 +151,12 @@ class DataConnection {
 
     console.log('data: connect');
     this._state = STATE_CONNECTING;
-    await this._write(TYPE_CONNECT, null);
 
-    while (this._state === STATE_CONNECTING)
-      await this.loop();
+    while (this._state === STATE_CONNECTING) {
+        await this._write(TYPE_CONNECT, null);
+        await this.loop();
+    }
+
     if (this._state !== STATE_CONNECTED)
       throw new ConnectError('failed connect');
   }
@@ -285,19 +289,30 @@ class DataConnection {
     }
   }
 
+  toArrayBuffer(buf) {
+      var ab = new ArrayBuffer(buf.length);
+      var view = new Uint8Array(ab);
+      for (var i = 0; i < buf.length; ++i) {
+          view[i] = buf[i];
+      }
+      return ab;
+  }
+
   async _read() {
     let packetBuf = null;
     try {
       packetBuf = await this._phys.read();
     } catch (e) {
-      if (e instanceof TimeoutError)
-        return {ok: false, type: null, buf: null};
+        console.log('erorr read');
+        if (e instanceof TimeoutError)
+          return {ok: false, type: null, buf: null};
       throw e;
     }
 
+
     let packet = null;
     try {
-      packet = packetParse(packetBuf);
+      packet = packetParse(this.toArrayBuffer(packetBuf));
     } catch (e) {
       if (e instanceof PacketError)
         return {ok: true, type: null, buf: null};

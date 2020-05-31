@@ -22,6 +22,20 @@ async function waitPortFlags(port, {dsr = false, dcd = false, cts = false} = {})
   return true;
 }
 
+async function waitForNotNull(port) {
+    let buff = null;
+    while (true) {
+        buff = port.read();
+        if (buff)
+            break;
+
+        await delay(FLAG_DELAY);
+    }
+
+    return buff;
+}
+
+
 class PhysicalConnection {
   constructor() {
     this._port = null;
@@ -51,10 +65,14 @@ class PhysicalConnection {
 
     await portOpen();
     console.log('before prot set');
-    await portSet();
+    // try {
+    //     await portSet({});
+    // } catch (e) {
+    //   console.log(e.stack);
+    // }
+
     console.log('after prot set');
-    // this._port.set({dtr: true}, console.log);
-    await waitPortFlags(this._port, {dsr: true, dcd: true});
+    // await waitPortFlags(this._port, {dsr: true, dcd: true});
   }
 
   async close({tout = TIMEOUT} = {}) {
@@ -86,16 +104,25 @@ class PhysicalConnection {
     return timeout(this._write(buf), tout);
   }
 
+  toBuffer(ab) {
+      var buf = Buffer.alloc(ab.byteLength);
+      var view = new Uint8Array(ab);
+      for (var i = 0; i < buf.length; ++i) {
+          buf[i] = view[i];
+      }
+      return buf;
+  }
+
   async _write(buf) {
     if (!this._port)
       return;
     const portDrain = promisify(this._port.drain.bind(this._port));
     const portSet = promisify(this._port.set.bind(this._port));
 
-    await portSet({rts: true});
-    await waitPortFlags(this._port, {cts: true});
-    this._port.write(buf);
-    await portDrain(buf);
+    // await portSet({rts: true});
+    // await waitPortFlags(this._port, {cts: true});
+    this._port.write(this.toBuffer(buf));
+    await portDrain();
   }
 
   async read({tout = TIMEOUT} = {}) {
@@ -103,14 +130,15 @@ class PhysicalConnection {
   }
 
   async _read() {
+    console.log(this._port);
     if (!this._port)
       return;
     const portSet = promisify(this._port.set.bind(this._port));
 
-    await portSet({cts: true});
-    await waitPortFlags(this._port, {cts: true});
+    // await portSet({cts: true});
+    // await waitPortFlags(this._port, {cts: true});
 
-    return this._port.read();
+    return await waitForNotNull(this._port);
   }
 }
 

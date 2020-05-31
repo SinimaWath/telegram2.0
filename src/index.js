@@ -56,6 +56,8 @@ ipcMain.on('connect', (event, {settings}) => {
     event.reply('connect-ok');
     subscribeRecvFile();
   }).catch((e) => {
+    console.log('connect-error');
+    console.log(e.stack);
     event.reply('connect-error', e);
   });
 });

@@ -28,8 +28,12 @@ function decode(toDecode, polynome) {
   return xorify(toDecode, polynome);
 }
 
-export function checksumCRC(buf) {
-  // TODO
-  return encode(buf, 0b10011, 7, 4);
+function checksumCRC(buf) {
+  return 1;
 }
+
+
+module.exports = {
+  checksumCRC
+};
 
