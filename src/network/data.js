@@ -150,10 +150,8 @@ class DataConnection {
     console.log('data: connect');
     this._state = STATE_CONNECTING;
 
-    while (this._state === STATE_CONNECTING) {
-        await this._write(TYPE_CONNECT, null);
-        await this.loop();
-    }
+    while (this._state === STATE_CONNECTING)
+      await this.loop();
 
     if (this._state !== STATE_CONNECTED)
       throw new ConnectError('failed connect');
@@ -213,6 +211,14 @@ class DataConnection {
   }
 
   async loop() {
+    console.log(`STATE BEGIN: state=${this._state}`)
+    const r = await this._loop();
+    console.log(`STATE END:   state=${this._state}`)
+    console.log()
+    return r;
+  }
+
+  async _loop() {
     if (this._state === STATE_NONE) {
       return;
     }
@@ -230,14 +236,23 @@ class DataConnection {
 
     if (this._state === STATE_CONNECTING) {
       const {ok, type} = await this._read();
-      if (!ok)
+      if (!ok) {
+        await this._write(TYPE_CONNECT, null);
         return;
+      }
+
+      if (type === TYPE_CONNECT) {
+        this._state = STATE_CONNECTED;
+        await this._write(TYPE_ACK, null);
+        return;
+      }
 
       if (type === TYPE_ACK) {
         this._state = STATE_CONNECTED;
-      } else {
-        this._state = STATE_ACCEPTING;
+        return;
       }
+
+      this._state = STATE_ACCEPTING;
     }
 
     if (this._state === STATE_CONNECTED) {
@@ -287,30 +302,22 @@ class DataConnection {
     }
   }
 
-  toArrayBuffer(buf) {
-      var ab = new ArrayBuffer(buf.length);
-      var view = new Uint8Array(ab);
-      for (var i = 0; i < buf.length; ++i) {
-          view[i] = buf[i];
-      }
-      return ab;
-  }
-
   async _read() {
     let packetBuf = null;
     try {
       packetBuf = await this._phys.read();
     } catch (e) {
-        console.log('erorr read');
-        if (e instanceof TimeoutError)
-          return {ok: false, type: null, buf: null};
+      if (e instanceof TimeoutError) {
+        console.log('READ: TIMEOUT');
+        return {ok: false, type: null, buf: null};
+      }
       throw e;
     }
 
-
     let packet = null;
     try {
-      packet = packetParse(this.toArrayBuffer(packetBuf));
+      packet = packetParse(packetBuf);
+      console.log(`READ: type=${packet.type}`);
     } catch (e) {
       if (e instanceof PacketError)
         return {ok: true, type: null, buf: null};
@@ -321,6 +328,7 @@ class DataConnection {
   }
 
   async _write(type, buf) {
+    console.log(`WRITE: type=${type}`);
     const packetBuf = packetMake(type, buf);
     this._phys.write(packetBuf);
   }

@@ -22,19 +22,34 @@ async function waitPortFlags(port, {dsr = false, dcd = false, cts = false} = {})
   return true;
 }
 
-async function waitForNotNull(port) {
-    let buff = null;
-    while (true) {
-        buff = port.read();
-        if (buff)
-            break;
-
-        await delay(FLAG_DELAY);
+async function waitForRead(port) {
+  while (true) {
+    const buff = port.read();
+    if (!buff) {
+      await delay(FLAG_DELAY);
+      continue;
     }
-
     return buff;
+  }
 }
 
+function toBuffer(ab) {
+  const buf = Buffer.alloc(ab.byteLength);
+  const view = new Uint8Array(ab);
+  for (let i = 0; i < buf.length; ++i) {
+    buf[i] = view[i];
+  }
+  return buf;
+}
+
+function toArrayBuffer(buf) {
+  const ab = new ArrayBuffer(buf.length);
+  const view = new Uint8Array(ab);
+  for (let i = 0; i < buf.length; ++i) {
+    view[i] = buf[i];
+  }
+  return ab;
+}
 
 class PhysicalConnection {
   constructor() {
@@ -103,15 +118,6 @@ class PhysicalConnection {
     return timeout(this._write(buf), tout);
   }
 
-  toBuffer(ab) {
-      var buf = Buffer.alloc(ab.byteLength);
-      var view = new Uint8Array(ab);
-      for (var i = 0; i < buf.length; ++i) {
-          buf[i] = view[i];
-      }
-      return buf;
-  }
-
   async _write(buf) {
     if (!this._port)
       return;
@@ -120,7 +126,7 @@ class PhysicalConnection {
 
     // await portSet({rts: true});
     // await waitPortFlags(this._port, {cts: true});
-    this._port.write(this.toBuffer(buf));
+    this._port.write(toBuffer(buf));
     await portDrain();
   }
 
@@ -136,7 +142,8 @@ class PhysicalConnection {
     // await portSet({cts: true});
     // await waitPortFlags(this._port, {cts: true});
 
-    return await waitForNotNull(this._port);
+    const buf = await waitForRead(this._port);
+    return toArrayBuffer(buf);
   }
 }
 
