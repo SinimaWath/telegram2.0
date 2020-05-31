@@ -33,6 +33,17 @@ async function waitForRead(port) {
   }
 }
 
+async function waitForQueue(queue) {
+  while (true) {
+    const buf = queue.shift();
+    if (!buf) {
+      await delay(READ_DELAY);
+      continue;
+    }
+    return buf;
+  }
+}
+
 function toBuffer(ab) {
   const buf = Buffer.alloc(ab.byteLength);
   const view = new Uint8Array(ab);
@@ -54,10 +65,11 @@ function toArrayBuffer(buf) {
 class PhysicalConnection {
   constructor() {
     this._port = null;
+    // this._rxQueue = [];
   }
 
   async connect(path, {tout = TIMEOUT} = {}) {
-    console.log('physical connect', path);
+    console.log(`PHYS CONNECT: path=${path}`);
     return timeout(this._connect(path), tout);
   }
 
@@ -78,15 +90,10 @@ class PhysicalConnection {
     const portSet = promisify(this._port.set.bind(this._port));
 
     await portOpen();
-    console.log('before prot set');
-    // try {
-    //     await portSet({});
-    // } catch (e) {
-    //   console.log(e.stack);
-    // }
-
-    console.log('after prot set');
+    // await portSet({dtr: true});
     // await waitPortFlags(this._port, {dsr: true, dcd: true});
+
+    // this._port.on('data', (data) => this._rxQueue.push(data));
   }
 
   async close({tout = TIMEOUT} = {}) {
@@ -98,6 +105,7 @@ class PhysicalConnection {
           this._port.close();
         } finally {
           this._port = null;
+          // this._rxQueue = [];
         }
       }
     }
@@ -109,7 +117,7 @@ class PhysicalConnection {
     const portClose = promisify(this._port.close.bind(this._port));
     const portSet = promisify(this._port.set.bind(this._port));
 
-    await portSet({dtr: false, rts: false});
+    // await portSet({dtr: false, rts: false});
     await portClose();
     this._port = null;
   }
@@ -142,8 +150,8 @@ class PhysicalConnection {
     // await portSet({cts: true});
     // await waitPortFlags(this._port, {cts: true});
 
-    const buf = await waitForRead(this._port);
-    return toArrayBuffer(buf);
+    return toArrayBuffer(await waitForRead(this._port));
+    // return toArrayBuffer(await waitForQueue(this._rxQueue));
   }
 }
 
