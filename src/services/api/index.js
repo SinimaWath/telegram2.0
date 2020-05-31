@@ -19,7 +19,7 @@ export class ApiServiceElectron {
     return new Promise((resolve) => {
       this.ipc.on('connect-ok', () => {
         console.log('connect-ok');
-        resolve();
+        resolve({error: null});
       });
       this.ipc.on('connect-error', (event, error) => {
         console.log('connect-error');

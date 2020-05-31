@@ -19,7 +19,7 @@
             return;
         }
 
-        // router.nav('chat');
+        router.nav('chat');
     }
 
     $: speedText = text('speed')($error);
