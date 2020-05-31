@@ -56,10 +56,10 @@ function packetParseFile(packetBuf) {
   if (!(0 <= type && type <= TYPES_MAX))
     throw new PacketError('bad type');
 
-  const filename = bufToStr(packetBuf.slice(PACKET_OFFS_FILENAME, PACKET_OFFS_FILENAME + PACKET_SIZE_FILENAME));
+  // const filename = bufToStr(packetBuf.slice(PACKET_OFFS_FILENAME, PACKET_OFFS_FILENAME + PACKET_SIZE_FILENAME));
   const filedata = packetBuf.slice(PACKET_OFFS_FILEDATA);
 
-  return {filename, filedata};
+  return {filedata};
 }
 
 class AppConnection {
@@ -101,17 +101,30 @@ class AppConnection {
 
   async sendFile(filename, filedata) {
     if (!this._data || !this._data.isConnected())
-      throw Error('not connected')
+      throw Error('not connected');
 
-    let buf = packetMakeFile(filename, filedata);
-    await this._data.write(buf)
+    try {
+        let buf = packetMakeFile(filename, filedata);
+        await this._data.write(buf)
+    } catch (e) {
+      console.log(e.stack);
+      throw e;
+    }
   }
 
   async recvFile() {
     if (!this._data || !this._data.isConnected())
       throw Error('not connected')
 
-    return packetParseFile(await this._data.read());
+    const buf = await this._data.read();
+    console.log('RECV FILE', buf);
+
+    try {
+      return packetParseFile(buf);
+    } catch(e) {
+      console.log(e.stack);
+      throw e;
+    }
   }
 }
 

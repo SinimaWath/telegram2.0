@@ -65,12 +65,22 @@ ipcMain.on('connect', (event, {settings}) => {
 
 // прием
 function subscribeRecvFile() {
-  conn.recvFile().then((filename, buf) => {
-    window.webContents.send('file-get', { name: filename });
+  conn.recvFile().then(({filename, filedata}) => {
+    ipcMain.on('save', (evnt, data) => {
+        console.log('FILE SAVE TO', data);
 
-    fs.writeFile(filename, buf, (err) => {
-      window.webContents.send('save-ok');
-    })
+        fs.writeFile(data, filedata, (err) => {
+            if (err) {
+                window.webContents.send('save-error', err);
+                return;
+            }
+
+            window.webContents.send('save-ok');
+        })
+    });
+
+    window.webContents.send('file-get', { name: 'kek.json' });
+
   });
 }
 
@@ -101,7 +111,7 @@ ipcMain.on('send', (event, {file}) => {
         console.log('send ok');
         event.reply('send-ok');
       }).catch(() => {
-        event.reply('send-error');
+        event.reply('send-error', err);
       });
   });
 });

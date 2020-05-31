@@ -202,8 +202,10 @@ class DataConnection {
 
     while (!this._rxDataQueue.length && this._state === STATE_CONNECTED)
       await this.loop();
+
     if (this._state !== STATE_CONNECTED)
       throw new ReadError('closed connection');
+
     return this._rxDataQueue.shift();
   }
 
@@ -321,7 +323,7 @@ class DataConnection {
       throw e;
     }
 
-    return {ok: true, type: packet.type, buf: packet.type};
+    return {ok: true, type: packet.type, buf: packet.buf};
   }
 
   async _write(type, buf) {
