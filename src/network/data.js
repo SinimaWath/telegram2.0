@@ -1,6 +1,7 @@
 const {PhysicalConnection} = require("./physical");
 const {checksumCRC} = require("./crc");
 const {TimeoutError} = require("promise-timeout");
+const chalk = require('chalk');
 
 // consts ==============================================================================================================
 
@@ -129,7 +130,7 @@ class DataConnection {
   }
 
   async accept(path) {
-    console.log('DATA: data accept');
+    console.log(chalk.blue('DATA: data accept'));
     if (this._state !== STATE_NONE)
       return;
 
@@ -147,7 +148,7 @@ class DataConnection {
     if (this._state !== STATE_ACCEPTING)
       return;
 
-    console.log('DATA: data: connect');
+    console.log(chalk.blue('DATA: data: connect'));
     this._state = STATE_CONNECTING;
 
     while (this._state === STATE_CONNECTING)
@@ -210,10 +211,10 @@ class DataConnection {
   }
 
   async loop() {
-    console.log(`DATA: STATE BEGIN: state=${this._state}`);
+    console.log(chalk.blue(`DATA: STATE BEGIN: state=${this._state}`));
     const r = await this._loop();
-    console.log(`DATA: STATE END:   state=${this._state}`);
-    console.log();
+    console.log(chalk.blue(`DATA: STATE END:   state=${this._state}`));
+    console.log(chalk.blue());
     return r;
   }
 
@@ -315,9 +316,9 @@ class DataConnection {
     let packet = null;
     try {
       packet = packetParse(packetBuf);
-      console.log(`DATA: READ: type=${packet.type}`);
+      console.log(chalk.blue(`DATA: READ: type=${packet.type}`));
     } catch (e) {
-      console.log(`READ: type=-1`);
+      console.log(chalk.blue(`READ: type=-1`));
       if (e instanceof PacketError)
         return {ok: true, type: null, buf: null};
       throw e;
@@ -327,7 +328,7 @@ class DataConnection {
   }
 
   async _write(type, buf) {
-    console.log(`DATA: WRITE: type=${type}`);
+    console.log(chalk.blue(`DATA: WRITE: type=${type}`));
     const packetBuf = packetMake(type, buf);
     await this._phys.write(packetBuf);
   }

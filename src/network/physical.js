@@ -1,7 +1,8 @@
 const SerialPort = require("serialport");
 const {promisify} = require("util");
 const delay = require("delay");
-const {timeout} = require("promise-timeout");
+const {timeout, TimeoutError} = require("promise-timeout");
+const chalk = require('chalk');
 
 const TIMEOUT = 1000;
 const READ_DELAY = 100;
@@ -15,31 +16,30 @@ async function waitPortFlags(port, {dsr = false, dcd = false, cts = false} = {})
     if (dsr && !flags.dsr) ok = false;
     if (dcd && !flags.dcd) ok = false;
     if (cts && !flags.cts) ok = false;
-    if (ok)
-      break;
-    await delay(READ_DELAY);
-  }
-  return true;
-}
-
-async function waitForRead(port) {
-  while (true) {
-    const buf = port.read();
-    if (!buf) {
+    if (!ok) {
       await delay(READ_DELAY);
       continue;
     }
-    return buf;
+    return true;
   }
 }
 
-async function waitForQueue(queue) {
+async function waitForQueue(queue, tout) {
+  const tsStart = Date.now();
+
   while (true) {
     const buf = queue.shift();
+
     if (!buf) {
+      if (Date.now() - tsStart > tout) {
+        console.log(chalk.red('PHYS: READ GET TOUT'));
+        throw new TimeoutError();
+      }
       await delay(READ_DELAY);
       continue;
     }
+
+    console.log(chalk.red('PHYS: READ GET'));
     return buf;
   }
 }
@@ -69,7 +69,7 @@ class PhysicalConnection {
   }
 
   async connect(path, {tout = TIMEOUT} = {}) {
-    console.log(`PHYS CONNECT: path=${path}`);
+    console.log(chalk.red(`PHYS CONNECT: path=${path}`));
     return timeout(this._connect(path), tout);
   }
 
@@ -95,7 +95,7 @@ class PhysicalConnection {
 
     this._port.on('data', (data) => {
       this._rxQueue.push(data);
-      console.log('PHYS: READ');
+      console.log(chalk.red('PHYS: READ QUEUE'));
     });
   }
 
@@ -140,14 +140,10 @@ class PhysicalConnection {
 
     this._port.write(toBuffer(buf));
     await portDrain();
-    console.log('PHYS: WRITE+DRAIN');
+    console.log(chalk.red('PHYS: WRITE+DRAIN'));
   }
 
   async read({tout = TIMEOUT} = {}) {
-    return timeout(this._read(), tout);
-  }
-
-  async _read() {
     if (!this._port)
       return;
     const portSet = promisify(this._port.set.bind(this._port));
@@ -155,7 +151,8 @@ class PhysicalConnection {
     // await portSet({cts: true});
     // await waitPortFlags(this._port, {cts: true});
 
-    return toArrayBuffer(await waitForQueue(this._rxQueue));
+    const buf = await waitForQueue(this._rxQueue, tout);
+    return toArrayBuffer(buf);
   }
 }
 
