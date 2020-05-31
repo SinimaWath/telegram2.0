@@ -2,12 +2,13 @@ const { app, BrowserWindow, ipcMain, ipcRenderer } = require('electron');
 const {AppConnection} = require("./network/app");
 const path = require('path');
 const fs = require('fs');
+const {toArrayBuffer, toBuffer} = require("./helpers/buf");
 
 // Live Reload
-require('electron-reload')(__dirname, {
-  electron: path.join(__dirname, '../node_modules', '.bin', 'electron'),
-  awaitWriteFinish: true
-});
+// require('electron-reload')(__dirname, {
+//   electron: path.join(__dirname, '../node_modules', '.bin', 'electron'),
+//   awaitWriteFinish: true
+// });
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -69,7 +70,9 @@ function subscribeRecvFile() {
     ipcMain.on('save', (evnt, data) => {
         console.log('FILE SAVE TO', data);
 
-        fs.writeFile(data, filedata, (err) => {
+        filedata = toBuffer(filedata)
+
+        fs.writeFile(data.path, filedata, (err) => {
             if (err) {
                 window.webContents.send('save-error', err);
                 return;
@@ -82,15 +85,6 @@ function subscribeRecvFile() {
     window.webContents.send('file-get', { name: 'kek.json' });
 
   });
-}
-
-function toArrayBuffer(buf) {
-  const ab = new ArrayBuffer(buf.length);
-  const view = new Uint8Array(ab);
-  for (let i = 0; i < buf.length; ++i) {
-    view[i] = buf[i];
-  }
-  return ab;
 }
 
 // отправка

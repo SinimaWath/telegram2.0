@@ -1,4 +1,5 @@
 const {DataConnection} = require("./data");
+const chalk = require('chalk');
 
 const PACKET_SIZE_TYPE     = 8;
 const PACKET_SIZE_FILENAME = 128;
@@ -103,9 +104,12 @@ class AppConnection {
     if (!this._data || !this._data.isConnected())
       throw Error('not connected');
 
+    console.log(chalk.green('APP: SEND: START'));
+
     try {
         let buf = packetMakeFile(filename, filedata);
         await this._data.write(buf)
+        console.log(chalk.green('APP: SEND: WRITTEN'), buf);
     } catch (e) {
       console.log(e.stack);
       throw e;
@@ -116,11 +120,15 @@ class AppConnection {
     if (!this._data || !this._data.isConnected())
       throw Error('not connected')
 
+    console.log(chalk.green('APP: RECV: START'));
+
     const buf = await this._data.read();
-    console.log('RECV FILE', buf);
+    console.log(chalk.green('APP: RECV: READ'), buf);
 
     try {
-      return packetParseFile(buf);
+      const r = packetParseFile(buf);
+      console.log(chalk.green('APP: RECV: PARSED'));
+      return r;
     } catch(e) {
       console.log(e.stack);
       throw e;
