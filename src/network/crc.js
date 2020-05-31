@@ -29,9 +29,8 @@ function decode(toDecode, polynome) {
 }
 
 function checksumCRC(buf) {
-  return 1;
+  return require('crc-32').buf(new Uint8Array(buf));
 }
-
 
 module.exports = {
   checksumCRC

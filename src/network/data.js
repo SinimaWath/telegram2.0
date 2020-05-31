@@ -99,10 +99,10 @@ function packetParse(packetBuf) {
   if (!(packetBuf.byteLength >= HEADER_SIZE))
     throw new PacketError('bad header size');
 
-  const crc = packetBufView.getUint32(PACKET_OFFS_CRC, ENDIANNESS_LITTLE);
+  const crc = packetBufView.getInt32(PACKET_OFFS_CRC, ENDIANNESS_LITTLE);
   const crcClient = checksumCRC(packetBuf.slice(PACKET_OFFS_CRC + PACKET_SIZE_CRC));
   if (crc !== crcClient)
-    throw new PacketError('bad crc');
+    throw new PacketError(`bad crc: ${crc} != ${crcClient}`);
 
   const type = packetBufView.getUint8(PACKET_OFFS_TYPE);
   if (!(0 <= type && type <= TYPES_MAX))
@@ -132,7 +132,8 @@ class DataConnection {
   }
 
   async accept(path) {
-    console.log(chalk.blue('DATA: data accept'));
+    console.log(chalk.blue('DATA: accept'));
+
     if (this._state !== STATE_NONE)
       return;
 
@@ -147,17 +148,18 @@ class DataConnection {
   }
 
   async connect() {
+    console.log(chalk.blue('DATA: connect'));
+
     if (this._state !== STATE_ACCEPTING)
       return;
 
-    console.log(chalk.blue('DATA: data: connect'));
     this._state = STATE_CONNECTING;
 
     while (this._state === STATE_CONNECTING)
       await this.loop();
 
     if (this._state !== STATE_CONNECTED)
-      throw new ConnectError('failed connect');
+      return this.connect()
   }
 
   async close() {
@@ -321,7 +323,8 @@ class DataConnection {
       console.log(chalk.blue(`DATA: READ: type=${packet.type}`));
       console.log(chalk.blue(hexdump(packetBuf)));
     } catch (e) {
-      console.log(chalk.blue(`READ: type=-1`));
+      console.log(chalk.blue(`READ: type=-1 err=${e}`));
+      console.log(chalk.blue(hexdump(packetBuf)));
       if (e instanceof PacketError)
         return {ok: true, type: null, buf: null};
       throw e;
