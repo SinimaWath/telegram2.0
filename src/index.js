@@ -45,11 +45,22 @@ app.on('activate', () => {
   }
 });
 
-const conn = new AppConnection();
+let conn = new AppConnection();
 
 // подключение
 ipcMain.on('connect', (event, {settings}) => {
   console.log(settings);
+
+  if (conn) {
+    try {
+      conn.close()
+    } catch (e) {
+      console.log(e.stack)
+    }
+  }
+
+  conn = new AppConnection();
+
   conn.accept(settings.comport).then(() => {
     return conn.connect();
   }).then(() => {
@@ -84,6 +95,8 @@ function subscribeRecvFile() {
 
     window.webContents.send('file-get', { name: filename });
 
+  }).finally(() => {
+    subscribeRecvFile();
   });
 }
 
