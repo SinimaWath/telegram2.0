@@ -65,7 +65,7 @@ function toArrayBuffer(buf) {
 class PhysicalConnection {
   constructor() {
     this._port = null;
-    this._rxQueue = [];
+    // this._rxQueue = [];
   }
 
   async connect(path, {tout = TIMEOUT} = {}) {
@@ -93,7 +93,7 @@ class PhysicalConnection {
     // await portSet({dtr: true});
     // await waitPortFlags(this._port, {dsr: true, dcd: true});
 
-    this._port.on('data', (data) => this._rxQueue.push(data));
+    // this._port.on('data', (data) => this._rxQueue.push(data));
   }
 
   async close({tout = TIMEOUT} = {}) {
@@ -105,7 +105,7 @@ class PhysicalConnection {
           this._port.close();
         } finally {
           this._port = null;
-          this._rxQueue = [];
+          // this._rxQueue = [];
         }
       }
     }
@@ -150,7 +150,8 @@ class PhysicalConnection {
     // await portSet({cts: true});
     // await waitPortFlags(this._port, {cts: true});
 
-    return toArrayBuffer(await waitForQueue(this._rxQueue));
+    return toArrayBuffer(await waitForRead(this._port));
+    // return toArrayBuffer(await waitForQueue(this._rxQueue));
   }
 }
 

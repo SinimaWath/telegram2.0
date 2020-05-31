@@ -316,6 +316,7 @@ class DataConnection {
       packet = packetParse(packetBuf);
       console.log(`READ: type=${packet.type}`);
     } catch (e) {
+      console.log(`READ: type=-1`);
       if (e instanceof PacketError)
         return {ok: true, type: null, buf: null};
       throw e;
