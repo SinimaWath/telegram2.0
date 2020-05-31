@@ -2,8 +2,8 @@ import { writable, derived } from 'svelte/store';
 
 function createSettings() {
   const { subscribe, set, update } = writable({
-    comport: 'COM1',
-    speed: 10
+    comport: '/dev/ttys002',
+    speed: 9600
   });
 
   return {
