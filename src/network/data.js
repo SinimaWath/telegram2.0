@@ -129,7 +129,7 @@ class DataConnection {
   }
 
   async accept(path) {
-    console.log('data accept');
+    console.log('DATA: data accept');
     if (this._state !== STATE_NONE)
       return;
 
@@ -147,7 +147,7 @@ class DataConnection {
     if (this._state !== STATE_ACCEPTING)
       return;
 
-    console.log('data: connect');
+    console.log('DATA: data: connect');
     this._state = STATE_CONNECTING;
 
     while (this._state === STATE_CONNECTING)
@@ -210,10 +210,10 @@ class DataConnection {
   }
 
   async loop() {
-    console.log(`STATE BEGIN: state=${this._state}`)
+    console.log(`DATA: STATE BEGIN: state=${this._state}`);
     const r = await this._loop();
-    console.log(`STATE END:   state=${this._state}`)
-    console.log()
+    console.log(`DATA: STATE END:   state=${this._state}`);
+    console.log();
     return r;
   }
 
@@ -307,7 +307,6 @@ class DataConnection {
       packetBuf = await this._phys.read();
     } catch (e) {
       if (e instanceof TimeoutError) {
-        console.log('READ: timeout');
         return {ok: false, type: null, buf: null};
       }
       throw e;
@@ -316,7 +315,7 @@ class DataConnection {
     let packet = null;
     try {
       packet = packetParse(packetBuf);
-      console.log(`READ: type=${packet.type}`);
+      console.log(`DATA: READ: type=${packet.type}`);
     } catch (e) {
       console.log(`READ: type=-1`);
       if (e instanceof PacketError)
@@ -328,9 +327,9 @@ class DataConnection {
   }
 
   async _write(type, buf) {
-    console.log(`WRITE: type=${type}`);
+    console.log(`DATA: WRITE: type=${type}`);
     const packetBuf = packetMake(type, buf);
-    this._phys.write(packetBuf);
+    await this._phys.write(packetBuf);
   }
 
   async _close() {
