@@ -56,6 +56,7 @@ ipcMain.on('connect', (event, {settings}) => {
     event.reply('connect-ok');
     subscribeRecvFile();
   }).catch((e) => {
+    // NOTE: LOG
     console.log('connect-error');
     console.log(e.stack);
     event.reply('connect-error', e);
@@ -87,26 +88,21 @@ ipcMain.on('send', (event, {file}) => {
 
   fs.readFile(file.path, (err, data) => {
     if (err) {
+      // NOTE: LOG
       event.reply('send-error');
-      console.log(err);
+      console.log(err.stack);
       return;
     }
 
-    try {
-      const buf = toArrayBuffer(data);
-      console.log('before send');
-      conn.sendFile(file.name, buf)
-        .then(() => {
-          console.log('send ok');
-          event.reply('send-ok');
-        }).catch(() => {
-          event.reply('send-error');
-        });
-
-    } catch (e) {
-      console.log(err);
-      event.reply('send-error');
-    }
+    const buf = toArrayBuffer(data);
+    console.log('before send');
+    conn.sendFile(file.name, buf)
+      .then(() => {
+        console.log('send ok');
+        event.reply('send-ok');
+      }).catch(() => {
+        event.reply('send-error');
+      });
   });
 });
 
