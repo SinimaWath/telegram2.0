@@ -8,7 +8,7 @@ const {toArrayBuffer, toBuffer} = require("../helpers/buf");
 const TIMEOUT = 1000;
 const READ_DELAY = 100;
 
-const MODEL_CONN = false;
+const MODEM_CONN = false;
 
 async function waitPortFlags(port, {dsr = false, dcd = false, cts = false} = {}) {
   const portGet = promisify(port.get.bind(port));
@@ -76,7 +76,7 @@ class PhysicalConnection {
 
     await portOpen();
     
-    if (MODEL_CONN) {
+    if (MODEM_CONN) {
       await portSet({dtr: true});
       await waitPortFlags(this._port, {dsr: true, dcd: true});
     }
@@ -108,7 +108,7 @@ class PhysicalConnection {
     const portClose = promisify(this._port.close.bind(this._port));
     const portSet = promisify(this._port.set.bind(this._port));
 
-    if (MODEL_CONN) {
+    if (MODEM_CONN) {
       await portSet({dtr: false, rts: false});
     }
 
@@ -126,7 +126,7 @@ class PhysicalConnection {
     const portDrain = promisify(this._port.drain.bind(this._port));
     const portSet = promisify(this._port.set.bind(this._port));
 
-    if (MODEL_CONN) {
+    if (MODEM_CONN) {
       await portSet({rts: true});
       await waitPortFlags(this._port, {cts: true});
     }
@@ -141,7 +141,7 @@ class PhysicalConnection {
       return;
     const portSet = promisify(this._port.set.bind(this._port));
 
-    if (MODEL_CONN) {
+    if (MODEM_CONN) {
       await portSet({cts: true});
       await waitPortFlags(this._port, {cts: true});
     }
