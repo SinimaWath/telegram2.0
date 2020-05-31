@@ -308,7 +308,7 @@ class DataConnection {
       packetBuf = await this._phys.read();
     } catch (e) {
       if (e instanceof TimeoutError) {
-        console.log('READ: TIMEOUT');
+        console.log('READ: timeout');
         return {ok: false, type: null, buf: null};
       }
       throw e;
