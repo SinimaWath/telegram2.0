@@ -82,7 +82,7 @@ function subscribeRecvFile() {
         })
     });
 
-    window.webContents.send('file-get', { name: 'kek.json' });
+    window.webContents.send('file-get', { name: filename });
 
   });
 }

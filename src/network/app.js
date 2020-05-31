@@ -30,9 +30,7 @@ function strToBuf(str, cap) {
 }
 
 function bufToStr(buf) {
-  const len = buf.indexOf(0);
-  const bufCut = buf.slice(0, len);
-  return String.fromCharCode.apply(null, bufCut);
+  return String.fromCharCode.apply(null, new Uint16Array(buf));
 }
 
 function packetMakeFile(filename, filedata) {
@@ -59,10 +57,10 @@ function packetParseFile(packetBuf) {
   if (!(0 <= type && type <= TYPES_MAX))
     throw new PacketError('bad type');
 
-  // const filename = bufToStr(packetBuf.slice(PACKET_OFFS_FILENAME, PACKET_OFFS_FILENAME + PACKET_SIZE_FILENAME));
+  const filename = bufToStr(packetBuf.slice(PACKET_OFFS_FILENAME, PACKET_OFFS_FILENAME + PACKET_SIZE_FILENAME));
   const filedata = packetBuf.slice(PACKET_OFFS_FILEDATA);
 
-  return {filedata};
+  return {filename, filedata};
 }
 
 class AppConnection {
