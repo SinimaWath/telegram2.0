@@ -21,6 +21,7 @@
     function openPrompt(text) {
         Dialog.prompt({
             message: text,
+            inputProps: { placeholder: 'file.txt' }
         }).then(prompt => modalResponse.set(prompt))
     }
 </script>
