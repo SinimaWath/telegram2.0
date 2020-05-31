@@ -175,20 +175,17 @@ class DataConnection {
     await this._close();
   }
 
-  async isAccepting() {
+  isAccepting() {
     return this._state !== STATE_NONE;
   }
 
-  async isConnected() {
+  isConnected() {
     return this._state === STATE_CONNECTED;
   }
 
   async write(buf) {
-    console.log(this._state);
     if (this._state !== STATE_CONNECTED)
       return;
-
-    console.log('write');
 
     await this._write(TYPE_DATA, buf);
     this._txDataQueue.push(buf);

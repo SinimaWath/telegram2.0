@@ -33,7 +33,7 @@ function bufToStr(buf) {
 }
 
 function packetMakeFile(filename, filedata) {
-  const packetLen = PACKET_SIZE_TYPE + PACKET_SIZE_FILENAME + bufLen;
+  const packetLen = PACKET_SIZE_TYPE + PACKET_SIZE_FILENAME + filedata.byteLength;
   const packetBuf = new ArrayBuffer(packetLen);
   const packetBufView = new DataView(packetBuf);
   const packetBufUint8View = new Uint8Array(packetBuf);
@@ -83,7 +83,7 @@ class AppConnection {
 
   async connect() {
     if (!this._data)
-      return;
+      throw Error('not accepting');
 
     await this._data.connect();
   }
@@ -100,16 +100,16 @@ class AppConnection {
   }
 
   async sendFile(filename, filedata) {
-    console.log('send', this._data, this._data.isConnected());
     if (!this._data || !this._data.isConnected())
-      return;
+      throw Error('not connected')
 
-    await this._data.write(packetMakeFile(filename, filedata))
+    let buf = packetMakeFile(filename, filedata);
+    await this._data.write(buf)
   }
 
   async recvFile() {
     if (!this._data || !this._data.isConnected())
-      return;
+      throw Error('not connected')
 
     return packetParseFile(await this._data.read());
   }

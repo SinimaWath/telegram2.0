@@ -4,7 +4,7 @@ const delay = require("delay");
 const {timeout} = require("promise-timeout");
 
 const TIMEOUT = 1000;
-const FLAG_DELAY = 100;
+const READ_DELAY = 100;
 
 async function waitPortFlags(port, {dsr = false, dcd = false, cts = false} = {}) {
   const portGet = promisify(port.get.bind(port));
@@ -17,19 +17,19 @@ async function waitPortFlags(port, {dsr = false, dcd = false, cts = false} = {})
     if (cts && !flags.cts) ok = false;
     if (ok)
       break;
-    await delay(FLAG_DELAY);
+    await delay(READ_DELAY);
   }
   return true;
 }
 
 async function waitForRead(port) {
   while (true) {
-    const buff = port.read();
-    if (!buff) {
-      await delay(FLAG_DELAY);
+    const buf = port.read();
+    if (!buf) {
+      await delay(READ_DELAY);
       continue;
     }
-    return buff;
+    return buf;
   }
 }
 
