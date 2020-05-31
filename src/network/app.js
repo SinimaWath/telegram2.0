@@ -1,7 +1,9 @@
 const {DataConnection} = require("./data");
 const chalk = require('chalk');
+const hexdump = require('hexdump-js');
 
-const PACKET_SIZE_TYPE     = 8;
+// bytes
+const PACKET_SIZE_TYPE     = 1;
 const PACKET_SIZE_FILENAME = 128;
 
 const PACKET_OFFS_TYPE     = 0;
@@ -41,8 +43,8 @@ function packetMakeFile(filename, filedata) {
 
   packetBufView.setUint8(PACKET_OFFS_TYPE, TYPE_FILE);
   const filenameBuf = strToBuf(filename, PACKET_SIZE_FILENAME);
-  packetBufUint8View.set(new Uint8Array(filenameBuf), PACKET_OFFS_FILENAME/8);
-  packetBufUint8View.set(filedata, PACKET_OFFS_FILEDATA/8);
+  packetBufUint8View.set(new Uint8Array(filenameBuf), PACKET_OFFS_FILENAME);
+  packetBufUint8View.set(new Uint8Array(filedata), PACKET_OFFS_FILEDATA);
 
   return packetBuf;
 }
@@ -105,11 +107,12 @@ class AppConnection {
       throw Error('not connected');
 
     console.log(chalk.green('APP: SEND: START'));
+    console.log(chalk.green(hexdump(filedata)));
 
     try {
         let buf = packetMakeFile(filename, filedata);
         await this._data.write(buf)
-        console.log(chalk.green('APP: SEND: WRITTEN'), buf);
+        console.log(chalk.green('APP: SEND: WRITTEN'));
     } catch (e) {
       console.log(e.stack);
       throw e;
@@ -123,7 +126,7 @@ class AppConnection {
     console.log(chalk.green('APP: RECV: START'));
 
     const buf = await this._data.read();
-    console.log(chalk.green('APP: RECV: READ'), buf);
+    console.log(chalk.green('APP: RECV: READ'));
 
     try {
       const r = packetParseFile(buf);

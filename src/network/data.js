@@ -2,12 +2,14 @@ const {PhysicalConnection} = require("./physical");
 const {checksumCRC} = require("./crc");
 const {TimeoutError} = require("promise-timeout");
 const chalk = require('chalk');
+const hexdump = require('hexdump-js');
 
 // consts ==============================================================================================================
 
-const PACKET_SIZE_CRC  = 32;
-const PACKET_SIZE_TYPE = 8;
-const PACKET_SIZE_LEN  = 32;
+// bytes
+const PACKET_SIZE_CRC  = 4;
+const PACKET_SIZE_TYPE = 1;
+const PACKET_SIZE_LEN  = 4;
 const HEADER_SIZE = PACKET_SIZE_CRC + PACKET_SIZE_TYPE + PACKET_SIZE_LEN;
 
 const PACKET_OFFS_CRC  = 0;
@@ -83,7 +85,7 @@ function packetMake(type, buf) {
   packetBufView.setUint8(PACKET_OFFS_TYPE, type);
   packetBufView.setUint32(PACKET_OFFS_LEN, bufLen, ENDIANNESS_LITTLE);
   if (bufLen)
-    packetBufUint8View.set(buf, PACKET_OFFS_DATA/8);
+    packetBufUint8View.set(new Uint8Array(buf), PACKET_OFFS_DATA);
 
   const crc = checksumCRC(packetBuf.slice(PACKET_OFFS_CRC + PACKET_SIZE_CRC));
   packetBufView.setUint32(PACKET_OFFS_CRC, crc, ENDIANNESS_LITTLE);
@@ -317,6 +319,7 @@ class DataConnection {
     try {
       packet = packetParse(packetBuf);
       console.log(chalk.blue(`DATA: READ: type=${packet.type}`));
+      console.log(chalk.blue(hexdump(packetBuf)));
     } catch (e) {
       console.log(chalk.blue(`READ: type=-1`));
       if (e instanceof PacketError)
@@ -330,6 +333,7 @@ class DataConnection {
   async _write(type, buf) {
     console.log(chalk.blue(`DATA: WRITE: type=${type}`));
     const packetBuf = packetMake(type, buf);
+    console.log(chalk.blue(hexdump(packetBuf)));
     await this._phys.write(packetBuf);
   }
 
