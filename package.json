@@ -70,7 +70,7 @@
     "@rollup/plugin-node-resolve": "^7.0.0",
     "autoprefixer": "^9.7.6",
     "concurrently": "^5.1.0",
-    "electron": "8.0.2",
+    "electron": "11.5.0",
     "node-sass": "^4.14.1",
     "rollup": "^1.32.0",
     "rollup-plugin-livereload": "^1.0.0",
